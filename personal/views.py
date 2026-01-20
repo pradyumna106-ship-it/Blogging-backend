@@ -22,37 +22,45 @@ def add_post(request):
     return Response(serializer.data)
 
 @api_view(['PUT', 'PATCH'])
-def update_post(request, pk):
+def update_post(request, id):
     try:
-        post = Post.objects.get(id=pk)
+        post = Post.objects.get(id=id)  # ✅ FIXED
     except Post.DoesNotExist:
-        return Response({"error": "Post not found"}, status=404)
-
+        return Response(
+            {"error": "Post not found"},
+            status=status.HTTP_404_NOT_FOUND
+        )
     serializer = PostSerializer(
         post,
         data=request.data,
         partial=True
     )
-
     if serializer.is_valid():
         serializer.save()
-        return Response(serializer.data)
-
-    return Response(serializer.errors, status=400)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['DELETE'])
-def delete_post(request, pk):
+def delete_post(request, id):
     try:
-        post = Post.objects.get(id=pk)
+        post = Post.objects.get(id=id)
     except Post.DoesNotExist:
         return Response({"error": "Post not found"}, status=404)
 
     post.delete()
     return Response({"message": "Post deleted successfully"}, status=204)
 @api_view(['GET'])
-def get_single_post(request,pk):
+def get_single_post(request, id):
     try:
-        post = Post.objects.get(id=pk)
+        post = Post.objects.get(id=id)
     except Post.DoesNotExist:
-        return Response({"error": "Post not found"}, status=404)
-    return Response(post.data, status=204)
+        return Response(
+            {"error": "Post not found"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+    serializer = PostSerializer(post)
+    return Response(
+        serializer.data,
+        status=status.HTTP_200_OK
+    )
